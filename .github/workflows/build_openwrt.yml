@@ -27,6 +27,16 @@ jobs:
 
       - name: Install feeds
         run: cd openwrt && ./scripts/feeds install -a
+      
+      - name: Custom Settings
+        run: |
+          sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
+          
+      - name: Copy Config
+        run: cp NBG6817.config openwrt/.config
+        
+      - name: make defconfig
+        run: cd openwrt && make defconfig
 
       - name: Download package
         id: package
@@ -42,3 +52,9 @@ jobs:
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j1 || make -j1 V=s
           echo "::set-output name=status::success"
+
+      - name : Upload artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: OpenWrt
+          path: openwrt/bin
