@@ -64,7 +64,7 @@ jobs:
       - name: rsync to server
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: rsync -avz -P openwrt/bin/targets repo@core.asche.co:openwrt
+        run: rsync -avz -P openwrt/bin/targets repo@core.asche.co:public/openwrt
 
       #- name : Upload artifact
       #  uses: actions/upload-artifact@main
