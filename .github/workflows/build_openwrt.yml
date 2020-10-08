@@ -7,9 +7,13 @@ jobs:
   # when a job name is not provided
   build:
     # Name the Job
-    name: Build Openwrt
+    name: Build ${{matrix.target}}
     # Set the type of machine to run on
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [NBG6817]
 
     steps:
       - name: Checkout 
@@ -36,7 +40,7 @@ jobs:
           sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
           
       - name: Copy Config
-        run: cp NBG6817.config openwrt/.config
+        run: cp ${{matrix.target}}.config openwrt/.config
         
       - name: make defconfig
         run: cd openwrt && make defconfig
