@@ -7,55 +7,55 @@ jobs:
   # when a job name is not provided
   build:
     # Name the Job
-    name: Build ${{matrix.target}}
+    name: Build ${{matrix.version}} - ${{matrix.target}}
     # Set the type of machine to run on
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         target: [NBG6817]
+        version: [openwrt-master,openwrt-stable,openwrt-lean]
 
     steps:
       - name: Checkout 
         uses: actions/checkout@v2
-      - name: Checkout openwrt source 
-        uses: actions/checkout@v2
         with:
-          repository: openwrt/openwrt
-          path: openwrt
-          ref: openwrt-19.07
+          submodules: true
+      #- name: Checkout openwrt source 
+      #  uses: actions/checkout@v2
+      #  with:
+      #    repository: openwrt/openwrt
+      #    path: openwrt
+      #    ref: openwrt-19.07
       - name: Setup env
         run: |
            sudo -E apt-get -qq update
            sudo -E apt-get -qq install build-essential rsync asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf wget swig
     
       - name: Update feeds
-        run: cd openwrt && ./scripts/feeds update -a
+        run: cd ${{matrix.version} && ./scripts/feeds update -a
 
       - name: Install feeds
-        run: cd openwrt && ./scripts/feeds install -a
+        run: cd ${{matrix.version} && ./scripts/feeds install -a
       
-      - name: Custom Settings
-        run: |
-          sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
+      #- name: Custom Settings
+      #  run: |
+      #    sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
           
       - name: Copy Config
-        run: cp ${{matrix.target}}.config openwrt/.config
+        run: cp ${{matrix.target}}.config ${{matrix.version}/.config
         
       - name: make defconfig
-        run: cd openwrt && make defconfig
+        run: cd ${{matrix.version} && make defconfig
 
       - name: Download package
         id: package
-        run: |
-          cd openwrt
-          make defconfig
-          make download -j8
+        run: cd ${{matrix.version} && make download -j8
       
       - name: Compile the firmware
         id: compile
         run: |
-          cd openwrt
+          cd ${{matrix.version}
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j1 || make -j1 V=s
           echo "::set-output name=status::success"
@@ -63,7 +63,7 @@ jobs:
       - name: Organize files
         id: organize
         run: |
-          cd openwrt/bin/targets/*/*
+          cd ${{matrix.version}/bin/targets/*/*
           rm -rf packages
           echo "::set-env name=FIRMWARE::$PWD"
           echo "::set-output name=status::success"
@@ -79,7 +79,7 @@ jobs:
       - name: rsync to server
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: rsync -avz -P openwrt/bin/targets repo@core.asche.co:public/openwrt
+        run: rsync -avz -P ${{matrix.version}/bin/targets repo@core.asche.co:public/${{matrix.version}
 
       #- name : Upload artifact
       #  uses: actions/upload-artifact@main

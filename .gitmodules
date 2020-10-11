@@ -1,0 +1,10 @@
+[submodule "openwrt-stable"]
+	path = openwrt-stable
+	url = https://github.com/openwrt/openwrt
+	branch = openwrt-19.07
+[submodule "openwrt-master"]
+	path = openwrt-master
+	url = https://github.com/openwrt/openwrt
+[submodule "openwrt-lean"]
+	path = openwrt-lean
+	url = https://github.com/coolsnowwolf/lede
