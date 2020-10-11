@@ -79,7 +79,7 @@ jobs:
       - name: rsync to server
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: rsync -avz -P ${{ matrix.version }}/bin/targets {{ secrets.REPO_USER }}@{{ secrets.REPO_HOST }}:public/${{ matrix.version }}
+        run: rsync -avz -P ${{ matrix.version }}/bin/targets repo@core.asche.co:public/${{ matrix.version }}
 
       #- name : Upload artifact
       #  uses: actions/upload-artifact@main
