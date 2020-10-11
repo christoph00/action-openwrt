@@ -43,7 +43,7 @@ jobs:
       #    sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
           
       - name: Copy Config
-        run: cp ${{ matrix.target }}.config ${{matrix.version}/.config
+        run: cp ${{ matrix.target }}.config ${{ matrix.version }}/.config
         
       - name: make defconfig
         run: cd ${{ matrix.version }} && make defconfig
