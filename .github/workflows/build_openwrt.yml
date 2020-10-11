@@ -33,29 +33,29 @@ jobs:
            sudo -E apt-get -qq install build-essential rsync asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf wget swig
     
       - name: Update feeds
-        run: cd ${{matrix.version} && ./scripts/feeds update -a
+        run: cd ${{ matrix.version }} && ./scripts/feeds update -a
 
       - name: Install feeds
-        run: cd ${{matrix.version} && ./scripts/feeds install -a
+        run: cd ${{ matrix.version }} && ./scripts/feeds install -a
       
       #- name: Custom Settings
       #  run: |
       #    sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
           
       - name: Copy Config
-        run: cp ${{matrix.target}}.config ${{matrix.version}/.config
+        run: cp ${{ matrix.target }}.config ${{matrix.version}/.config
         
       - name: make defconfig
-        run: cd ${{matrix.version} && make defconfig
+        run: cd ${{ matrix.version }} && make defconfig
 
       - name: Download package
         id: package
-        run: cd ${{matrix.version} && make download -j8
+        run: cd ${{ matrix.version }} && make download -j8
       
       - name: Compile the firmware
         id: compile
         run: |
-          cd ${{matrix.version}
+          cd ${{ matrix.version }}
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j1 || make -j1 V=s
           echo "::set-output name=status::success"
@@ -63,7 +63,7 @@ jobs:
       - name: Organize files
         id: organize
         run: |
-          cd ${{matrix.version}/bin/targets/*/*
+          cd ${{ matrix.version }}/bin/targets/*/*
           rm -rf packages
           echo "::set-env name=FIRMWARE::$PWD"
           echo "::set-output name=status::success"
@@ -73,13 +73,13 @@ jobs:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
             mkdir -p ~/.ssh
-            ssh-keyscan core.asche.co >> ~/.ssh/known_hosts
+            ssh-keyscan {{ secrets.REPO_HOST }} >> ~/.ssh/known_hosts
             ssh-agent -a $SSH_AUTH_SOCK > /dev/null
             ssh-add - <<< "${{ secrets.REPO_SSH_KEY }}"
       - name: rsync to server
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: rsync -avz -P ${{matrix.version}/bin/targets repo@core.asche.co:public/${{matrix.version}
+        run: rsync -avz -P ${{ matrix.version }}/bin/targets {{ secrets.REPO_USER }}@{{ secrets.REPO_HOST }}:public/${{ matrix.version }}
 
       #- name : Upload artifact
       #  uses: actions/upload-artifact@main
