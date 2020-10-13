@@ -68,18 +68,14 @@ jobs:
           echo "::set-env name=FIRMWARE::$PWD"
           echo "::set-output name=status::success"
           
-      - name: Setup SSH Keys and known_hosts
+      - name: RSYNC to Server
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
             mkdir -p ~/.ssh
             ssh-keyscan "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
-            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
             ssh-add - <<< "${{ secrets.REPO_SSH_KEY }}"
-      - name: rsync to server
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: rsync -avz -P ${{ matrix.version }}/bin/targets "${{ secrets.REPO_USER }}"@"${{ secrets.REPO_HOST }}":public/${{ matrix.version }}
+            rsync -avz -P ${{ matrix.version }}/bin/targets "${{ secrets.REPO_USER }}"@"${{ secrets.REPO_HOST }}":public/${{ matrix.version }}
 
       #- name : Upload artifact
       #  uses: actions/upload-artifact@main
