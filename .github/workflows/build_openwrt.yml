@@ -74,6 +74,7 @@ jobs:
         run: |
             mkdir -p ~/.ssh
             ssh-keyscan "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+            ssh-agent
             ssh-add - <<< "${{ secrets.REPO_SSH_KEY }}"
             rsync -avz -P ${{ matrix.version }}/bin/targets "${{ secrets.REPO_USER }}"@"${{ secrets.REPO_HOST }}":public/${{ matrix.version }}
 
