@@ -14,56 +14,56 @@ jobs:
       fail-fast: false
       matrix:
         target: [NBG6817]
-        version: [openwrt-master,openwrt-stable,openwrt-lean]
+        version: [openwrt-19.07]
 
     steps:
       - name: Checkout 
         uses: actions/checkout@v2
+
+      - name: Checkout openwrt source 
+        uses: actions/checkout@v2
         with:
-          submodules: true
-      #- name: Checkout openwrt source 
-      #  uses: actions/checkout@v2
-      #  with:
-      #    repository: openwrt/openwrt
-      #    path: openwrt
-      #    ref: openwrt-19.07
+          repository: openwrt/openwrt
+          path: openwrt
+          ref: ${{ matrix.version }} 
+
       - name: Setup env
         run: |
            sudo -E apt-get -qq update
            sudo -E apt-get -qq install build-essential rsync asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf wget swig
     
       - name: Update feeds
-        run: cd ${{ matrix.version }} && ./scripts/feeds update -a
+        run: cd openwrt && ./scripts/feeds update -a
 
       - name: Install feeds
-        run: cd ${{ matrix.version }} && ./scripts/feeds install -a
+        run: cd openwrt && ./scripts/feeds install -a
       
       #- name: Custom Settings
       #  run: |
       #    sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
           
       - name: Copy Config
-        run: cp ${{ matrix.target }}.config ${{ matrix.version }}/.config
+        run: cp ${{ matrix.target }}.config openwrt/.config
         
       - name: make defconfig
-        run: cd ${{ matrix.version }} && make defconfig
+        run: cd $openwrt && make defconfig
 
       - name: Download package
         id: package
-        run: cd ${{ matrix.version }} && make download -j8
+        run: cd openwrt && make download -j8
       
       - name: Compile the firmware
         id: compile
         run: |
-          cd ${{ matrix.version }}
+          cd openwrt
           echo -e "$(nproc) thread compile"
-          make -j$(nproc) || make -j1 || make -j1 V=s
+          make -j$(nproc) || make -j12|| make -j2 V=s
           echo "::set-output name=status::success"
           
       - name: Organize files
         id: organize
         run: |
-          cd ${{ matrix.version }}/bin/targets/*/*
+          cd openwrt/bin/targets/*/*
           rm -rf packages
           echo "::set-env name=FIRMWARE::$PWD"
           echo "::set-output name=status::success"
@@ -76,7 +76,7 @@ jobs:
             ssh-keyscan "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
             ssh-agent
             ssh-add - <<< "${{ secrets.REPO_SSH_KEY }}"
-            rsync -avz -P ${{ matrix.version }}/bin/targets "${{ secrets.REPO_USER }}"@"${{ secrets.REPO_HOST }}":public/${{ matrix.version }}
+            rsync -avz -P openwrt/bin/targets "${{ secrets.REPO_USER }}"@"${{ secrets.REPO_HOST }}":public/${{ matrix.version }}
 
       #- name : Upload artifact
       #  uses: actions/upload-artifact@main
