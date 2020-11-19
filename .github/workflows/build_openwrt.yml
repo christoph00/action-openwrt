@@ -58,15 +58,12 @@ jobs:
           cd openwrt
           echo -e "$(nproc) thread compile"
           make -j$(nproc) || make -j12|| make -j2 V=s
-          echo "::set-output name=status::success"
           
       - name: Organize files
         id: organize
         run: |
           cd openwrt/bin/targets/*/*
           rm -rf packages
-          echo "::set-env name=FIRMWARE::$PWD"
-          echo "::set-output name=status::success"
           
       - name: RSYNC to Server
         env:
@@ -77,9 +74,3 @@ jobs:
             ssh-agent
             ssh-add - <<< "${{ secrets.REPO_SSH_KEY }}"
             rsync -avz -P openwrt/bin/targets "${{ secrets.REPO_USER }}"@"${{ secrets.REPO_HOST }}":public/${{ matrix.version }}
-
-      #- name : Upload artifact
-      #  uses: actions/upload-artifact@main
-      #  with:
-      #    name: OpenWrt
-      #    path: openwrt/bin
