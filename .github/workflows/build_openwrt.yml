@@ -46,7 +46,7 @@ jobs:
         run: cp ${{ matrix.target }}.config openwrt/.config
         
       - name: make defconfig
-        run: cd $openwrt && make defconfig
+        run: cd openwrt && make defconfig
 
       - name: Download package
         id: package
