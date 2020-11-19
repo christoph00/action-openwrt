@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [NBG6817]
+        target: [NBG6817, uaplite, erx]
         version: [openwrt-19.07]
 
     steps:
