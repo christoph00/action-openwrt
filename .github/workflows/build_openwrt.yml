@@ -64,13 +64,14 @@ jobs:
         run: |
           cd openwrt/bin/targets/*/*
           rm -rf packages
-          
-      - name: RSYNC to Server
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-            mkdir -p ~/.ssh
-            ssh-keyscan "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
-            ssh-agent
-            ssh-add - <<< "${{ secrets.REPO_SSH_KEY }}"
-            rsync -avz -P openwrt/bin/targets "${{ secrets.REPO_USER }}"@"${{ secrets.REPO_HOST }}":public/${{ matrix.version }}
+
+      - name: rsync to server
+        uses: burnett01/rsync-deployments@4.1
+        with:
+          switches: -avzr --delete
+          path: openwrt/bin/targets/
+          remote_path: public/${{ matrix.version }}
+          remote_host: ${{ secrets.REPO_HOST }}
+          remote_port: 22
+          remote_user: ${{ secrets.REPO_USER }}
+          remote_key: ${{ secrets.REPO_SSH_KEY }}
