@@ -68,7 +68,7 @@ jobs:
       - name: rsync to server
         uses: burnett01/rsync-deployments@4.1
         with:
-          switches: -avzr --delete
+          switches: -avzr
           path: openwrt/bin/targets/
           remote_path: public/${{ matrix.version }}
           remote_host: ${{ secrets.REPO_HOST }}
