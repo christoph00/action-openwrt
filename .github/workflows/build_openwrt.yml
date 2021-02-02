@@ -32,32 +32,33 @@ jobs:
            sudo -E apt-get -qq update
            sudo -E apt-get -qq install build-essential rsync asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf wget swig
     
-      - name: Update feeds
-        run: cd openwrt && ./scripts/feeds update -a
-
-      - name: Install feeds
-        run: cd openwrt && ./scripts/feeds install -a
-      
-      #- name: Custom Settings
-      #  run: |
-      #    sed -i 's/192.168.1.1/192.168.10.6/g' openwrt/package/base-files/files/bin/config_generate
+      - name: Update & Install feeds
+        working-directory: ./openwrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
           
-      - name: Copy Config
-        run: cp ${{ matrix.target }}.config openwrt/.config
+      - name: Configuration Customization - ${{ matrix.target }}
+        env:
+          CONFIG_FILE: '${{ matrix.target }}.config'
+        run: |
+          [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+          chmod +x ./customize.sh && ./customize.sh
+          cd openwrt && make defconfig
         
-      - name: make defconfig
-        run: cd openwrt && make defconfig
 
       - name: Download package
-        id: package
-        run: cd openwrt && make download -j8
-      
-      - name: Compile the firmware
-        id: compile
+        working-directory: ./openwrt
         run: |
-          cd openwrt
-          echo -e "$(nproc) thread compile"
-          make -j$(nproc) || make -j12|| make -j2 V=s
+          make download -j$(nproc)
+          find dl -size -1024c -exec ls -l {} \;
+          find dl -size -1024c -exec rm -f {} \;
+      
+      - name: Build firmware
+        working-directory: ./openwrt
+        run: |
+          echo -e "$(nproc) thread build."
+          make -j$(nproc) V=s
           
       - name: Organize files
         id: organize
@@ -65,13 +66,8 @@ jobs:
           cd openwrt/bin/targets/*/*
           rm -rf packages
 
-      - name: rsync to server
-        uses: burnett01/rsync-deployments@4.1
+      - name : Upload artifact
+        uses: actions/upload-artifact@master
         with:
-          switches: -avzr
-          path: openwrt/bin/targets/
-          remote_path: public/${{ matrix.version }}
-          remote_host: ${{ secrets.REPO_HOST }}
-          remote_port: 22
-          remote_user: ${{ secrets.REPO_USER }}
-          remote_key: ${{ secrets.REPO_SSH_KEY }}
+          name: OpenWrt ${{ matrix.target }}
+          path: openwrt/bin
