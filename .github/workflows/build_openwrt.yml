@@ -1,5 +1,5 @@
 name: build openwrt
-#on: push
+on: push
 
 jobs:
   # Set the job key. The key is displayed as the job name
