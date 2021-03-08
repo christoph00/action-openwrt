@@ -20,7 +20,7 @@ let
         gcc
         unzip
         utillinux
-        python2
+        python3
         patch
         wget
         file
@@ -31,6 +31,7 @@ let
         fixWrapper
         systemd
         binutils
+        rsync
 
         ncurses
         zlib
