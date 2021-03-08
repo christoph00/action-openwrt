@@ -1,6 +1,5 @@
 name: build openwrt
-# Run this workflow every time a new commit pushed to your repository
-on: push
+#on: push
 
 jobs:
   # Set the job key. The key is displayed as the job name
@@ -14,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [NBG6817, uaplite, erx]
-        version: [openwrt-19.07]
+        version: [openwrt-21.02]
 
     steps:
       - name: Checkout 
@@ -27,16 +26,25 @@ jobs:
           path: openwrt
           ref: ${{ matrix.version }} 
 
+
       - name: Setup env
         run: |
            sudo -E apt-get -qq update
            sudo -E apt-get -qq install build-essential rsync asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf wget swig
     
+      - name: Patch repo
+        working-directory: ./openwrt
+        run: |
+            find "../patches/all" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
+            find "../patches/${{ matrix.target }}" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
+
+
       - name: Update & Install feeds
         working-directory: ./openwrt
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+      
           
       - name: Configuration Customization - ${{ matrix.target }}
         env:
