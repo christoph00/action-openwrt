@@ -21,6 +21,7 @@ let
         unzip
         utillinux
         python3
+	python2
         patch
         wget
         file
