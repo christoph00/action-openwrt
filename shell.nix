@@ -25,7 +25,6 @@
           util-linux
           python2
           python3
-          .6
           rsync
           patch
           wget
