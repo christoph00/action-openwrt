@@ -12,13 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [NBG6817, uaplite, fb3370]
-        version: [openwrt-21.02]
+        target: [uaplite, erx]
+        version: [openwrt-22.03]
         repo: [openwrt/openwrt]
-        include:
-          - target: NBG6817
-            version: openwrt-21.02-nss-qsdk10.0
-            repo: ACwifidude/openwrt
     steps:
       - name: Checkout 
         uses: actions/checkout@v2

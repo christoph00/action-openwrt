@@ -1,6 +1,7 @@
-{ pkgs ? import <nixpkgs> {} }:
-
-let
+{
+  pkgs ? import <nixpkgs> {},
+  extraPkgs ? [],
+}: let
   fixWrapper = pkgs.runCommand "fix-wrapper" {} ''
     mkdir -p $out/bin
     for i in ${pkgs.gcc.cc}/bin/*-gnu-gcc*; do
@@ -13,36 +14,41 @@ let
 
   fhs = pkgs.buildFHSUserEnv {
     name = "openwrt-env";
-    targetPkgs = pkgs: with pkgs;
-      [ git
-        perl
-        gnumake
-        gcc
-        unzip
-        utillinux
-        python3
-	python2
-        patch
-        wget
-        file
-        subversion
-        which
-        pkgconfig
-        openssl
-        fixWrapper
-        systemd
-        binutils
-        rsync
+    targetPkgs = pkgs:
+      with pkgs;
+        [
+          git
+          perl
+          gnumake
+          gcc
+          unzip
+          util-linux
+          python2
+          python3
+          .6
+          rsync
+          patch
+          wget
+          file
+          subversion
+          which
+          pkg-config
+          openssl
+          fixWrapper
+          systemd
+          binutils
 
-        ncurses
-        zlib
-        zlib.static
-        glibc.static
-      ];
+          ncurses
+          zlib
+          zlib.static
+          glibc.static
+        ]
+        ++ extraPkgs;
     multiPkgs = null;
-    extraOutputsToInstall = [ "dev" ];
+    extraOutputsToInstall = ["dev"];
     profile = ''
       export hardeningDisable=all
     '';
   };
-in fhs.env
+in
+  fhs.env
